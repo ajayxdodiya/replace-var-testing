@@ -16,12 +16,15 @@ jobs:
       - name: Extract Variable from Commit Message
         id: extract_variable
         run: |
-          COMMIT_MESSAGE=$(git log -1 --pretty=format:%s)
-          echo "::set-output name=version::$(echo "$COMMIT_MESSAGE" | grep -oP '(?<=VERSION: ).+')"
+          #COMMIT_MESSAGE=$(git log -1 --pretty=format:%s)
+          #echo "::set-output name=version::$(echo "$COMMIT_MESSAGE" | grep -oP '(?<=VERSION: ).+')"
+          COMMIT_MESSAGE=$(git log --format=%B -n 1 ${{ github.sha }})
+          VERSION_NAME=$(echo $COMMIT_MESSAGE | grep -oP '(?<=Version: )[^,]+')
+          echo "::set-output name=version_name::$VERSION_NAME"
 
       - name: Replace Version in index.html
         run: |
-          sed -i "s/{{VERSION}}/${{ steps.extract_variable.outputs.version }}/g" index.html
+          sed -i "s/{{VERSION}}/${{ steps.extract_variable.outputs.version_name }}/g" index.html
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git commit -am "Replace version in index.html"
