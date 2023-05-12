@@ -1,0 +1,28 @@
+name: Replace Version in index.html
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  replace_version:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Extract Variable from Commit Message
+        id: extract_variable
+        run: |
+          COMMIT_MESSAGE=$(git log -1 --pretty=format:%s)
+          echo "::set-output name=version::$(echo "$COMMIT_MESSAGE" | grep -oP '(?<=VERSION: ).+')"
+
+      - name: Replace Version in index.html
+        run: |
+          sed -i "s/{{VERSION}}/${{ steps.extract_variable.outputs.version }}/g" index.html
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git commit -am "Replace version in index.html"
+          git push
